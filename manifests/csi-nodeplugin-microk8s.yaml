@@ -80,7 +80,7 @@ spec:
             capabilities:
               add: ["SYS_ADMIN"]
             allowPrivilegeEscalation: true
-          image: docker.io/kadalu/kadalu-csi:devel
+          image: dockerhub.cisco.com/robot-dockerprod/kadalu-csi-driver:2.0.0
           env:
             - name: NODE_ID
               valueFrom:
