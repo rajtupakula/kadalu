@@ -21,9 +21,10 @@ from kadalulib import (PV_TYPE_RAWBLOCK, PV_TYPE_SUBVOL, PV_TYPE_VIRTBLOCK,
 
 from socketclient import executeCommand
 
-config = {
-    "override_method": True
-}
+overrideEnv = os.environ.get("OVERRIDE_METHOD", "False")
+logging.debug("The override env value is ", overrideEnv)
+if overrideEnv == "True":
+    execute = executeCommand
 
 GLUSTERFS_CMD = "/opt/sbin/glusterfs"
 MOUNT_CMD = "/bin/mount"
@@ -1313,8 +1314,3 @@ def yield_list_of_pvcs(max_entries=0):
             pvcs *= 0
     if idx == -1:
         return "No PVC exist in any storage pool"
-    
-if __name__ == "__main__":
-    if config.get("override_method"):
-        logging.info("Execute method is overridden")
-        execute = executeCommand

@@ -4,7 +4,7 @@ import socket
 import uuid
 import logging
 
-from kadalulib import execute
+from kadalulib import (execute, CommandException)
 
 SOCKET_FILE_PATH = "/kadalu/glusterfs/glustersocket.sock"
 GLUSTERFS_CMD = "/usr/sbin/glusterfs"
@@ -93,6 +93,6 @@ def executeCommand(*cmd):
     head = cmd[0]
     if ("glusterfs" in head) or ("/mount" in head):
         logging.info("The command is glusterfs or mount")
-        return socketClient(list[cmd])
+        return socketClient(list(cmd))
     else:
         return execute(*cmd)

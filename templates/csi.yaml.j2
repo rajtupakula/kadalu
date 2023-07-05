@@ -89,6 +89,8 @@ spec:
               value: "{{ verbose }}"
             - name: CSI_ROLE
               value: "provisioner"
+            - name: OVERRIDE_METHOD
+              value: "True"
           volumeMounts:
             - name: socket-dir
               mountPath: /plugin
