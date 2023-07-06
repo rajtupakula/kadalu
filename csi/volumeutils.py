@@ -1087,15 +1087,16 @@ def mount_glusterfs_with_host(volname, mountpoint, hosts, options=None, is_clien
     ## on server component we can mount glusterfs with client-pid
     #if not is_client:
     #    cmd.extend(["--client-pid", "-14"])
-    if netaddr.valid_ipv6(hosts[0]):
-        cmd.extend(["--xlator-option","transport.address-family=inet6"])
-    logging.info(logf(
-            "proceeding with xlator",
-             cmd=cmd,
-             ))
+    # if netaddr.valid_ipv6(hosts[0]):
+    #     cmd.extend(["--xlator-option","transport.address-family=inet6"])
+    # logging.info(logf(
+    #         "proceeding with xlator",
+    #          cmd=cmd,
+    #          ))
 
     for host in hosts.split(','):
-        cmd.extend(["--volfile-server", host+":24007"])
+        #cmd.extend(["--volfile-server", host+":24007"])
+        cmd.extend(["--volfile-server", host])
         logging.info(logf(
         "gluster-kadalu hostname",
          cmd=cmd,
