@@ -61,6 +61,7 @@ COPY csi/start.py              /kadalu/
 COPY csi/exporter.py           /kadalu/
 COPY csi/nodeserver.py         /kadalu/
 COPY csi/volumeutils.py        /kadalu/
+COPY csi/socketclient.py       /kadalu/
 COPY lib/startup.sh            /kadalu/
 COPY csi/quota-crawler.sh      /kadalu/
 COPY csi/watch-vol-changes.sh  /kadalu/
@@ -92,11 +93,11 @@ ENTRYPOINT ["python3", "/kadalu/start.py"]
 # uncomment below line
 # ENTRYPOINT ["tail", "-f", "/dev/null"]
 
-ENV http_proxy = ""
-ENV HTTP_PROXY = ""
-ENV ftp_proxy = ""
-ENV FTP_PROXY = ""
-ENV https_proxy = ""
-ENV HTTPS_PROXY = ""
-ENV no_proxy = ""
-ENV NO_PROXY = ""
+ENV http_proxy=""
+ENV HTTP_PROXY=""
+ENV ftp_proxy=""
+ENV FTP_PROXY=""
+ENV https_proxy=""
+ENV HTTPS_PROXY=""
+ENV no_proxy=""
+ENV NO_PROXY=""
