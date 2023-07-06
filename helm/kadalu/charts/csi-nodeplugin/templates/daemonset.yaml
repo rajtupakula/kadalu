@@ -63,6 +63,8 @@ spec:
               value: {{ .Values.verbose | quote }}
             - name: CSI_ROLE
               value: "nodeplugin"
+            - name: OVERRIDE_METHOD
+              value: "True"
           volumeMounts:
             - name: plugin-dir
               mountPath: /plugin
@@ -78,6 +80,10 @@ spec:
             - name: csi-dir
               mountPath: {{ include "common.configs.kubeletDir" . }}/plugins/kubernetes.io/csi
               mountPropagation: "Bidirectional"
+            - name: kadalu-storagevol
+              mountPath: /mnt/
+            - name: glusterfs-vol
+              mountPath: /kadalu/glusterfs/
         - name: kadalu-logging
           image: docker.io/library/busybox
           command: ["/bin/sh"]
@@ -110,3 +116,9 @@ spec:
           hostPath:
             path: {{ include "common.configs.kubeletDir" . }}/plugins/kubernetes.io/csi/
             type: DirectoryOrCreate
+        - name: kadalu-storagevol
+          hostPath:
+            path: /mnt/kadalu/
+        - name: glusterfs-vol
+          hostPath: 
+            path: /mnt/robot_datafs/node-orchestrator/glusterfs/
