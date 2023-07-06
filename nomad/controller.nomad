@@ -66,7 +66,7 @@ job "kadalu-csi-controller" {
             "volname": "${var.volname}",
             "volume_id": "${uuidv5("dns", "${var.volname}.kadalu.io")}",
             "type": "External",
-            "pvReclaimPolicy": "delete",
+            "pvReclaimPolicy": "retain",
             "kadalu_format": "native",
             "gluster_hosts": "${var.gluster_hosts}",
             "gluster_volname": "${var.gluster_volname}",
