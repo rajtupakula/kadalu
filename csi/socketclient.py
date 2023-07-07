@@ -6,11 +6,14 @@ import logging
 
 from kadalulib import (execute, CommandException)
 
-SOCKET_FILE_PATH = "/kadalu/glusterfs/glustersocket.sock"
+SOCKET_FILE_PATH = "/var/run/vmexec-socket/vmexec.sock"
 GLUSTERFS_CMD = "/usr/sbin/glusterfs"
 MOUNT_CMD = "/usr/bin/mount"
+UNMOUNT_CMD = "/usr/bin/umount"
 HOSTVOL_MOUNTDIR = "/mnt/kadalu"
 is_connected = False
+
+cmdList = ["glusterfs", "/mount", "/umount", "findmnt", "losetup"]
 
 def connectSocket(client_socket):
     retry_interval = 60
@@ -39,6 +42,8 @@ def parseCommand(commandList):
         commandList[0] = GLUSTERFS_CMD
     elif "/mount" in commandList[0]:
         commandList[0] = MOUNT_CMD
+    elif "/umount" in commandList[0]:
+        commandList[0] = UNMOUNT_CMD
         
     return " ".join(commandList)
 
@@ -86,13 +91,14 @@ def socketClient(commandList):
             is_connected = False
     if len(json_data['error']) != 0 :
                 raise CommandException(json_data['result'], json_data['output'], json_data['error'])
-    return (json_data['result'], json_data["output"], json_data["error"])
+    return (json_data["output"], json_data["error"], json_data['result'])
 
 def executeCommand(*cmd):
-    logging.info("In execute command method to check command is glusterfs or mount")
+    logging.info("In execute command method to check command is glusterfs or mount or umount")
     head = cmd[0]
-    if ("glusterfs" in head) or ("/mount" in head):
-        logging.info("The command is glusterfs or mount")
+    logging.info(head)
+    if any(cmdStr in head for cmdStr in cmdList):
+        logging.info("The command is glusterfs or mount or umount")
         return socketClient(list(cmd))
     else:
         return execute(*cmd)
