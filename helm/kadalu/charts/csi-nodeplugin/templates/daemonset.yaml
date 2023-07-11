@@ -83,7 +83,7 @@ spec:
             - name: kadalu-storagevol
               mountPath: /mnt/
             - name: glusterfs-vol
-              mountPath: /kadalu/glusterfs/
+              mountPath: /var/run/vmexec-socket/
         - name: kadalu-logging
           image: docker.io/library/busybox
           imagePullPolicy: IfNotPresent
@@ -119,7 +119,7 @@ spec:
             type: DirectoryOrCreate
         - name: kadalu-storagevol
           hostPath:
-            path: /mnt/kadalu/
+            path: /mnt/cw_glusterfs/kadalu
         - name: glusterfs-vol
           hostPath: 
-            path: /mnt/robot_datafs/node-orchestrator/glusterfs/
+            path: /var/run/vmexec-socket/
