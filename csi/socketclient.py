@@ -3,8 +3,10 @@ import json
 import socket
 import uuid
 import logging
+import threading
 
 from kadalulib import (execute, CommandException)
+from socket import SocketConnect
 
 SOCKET_FILE_PATH = "/var/run/vmexec-socket/vmexec.sock"
 GLUSTERFS_CMD = "/usr/sbin/glusterfs"
@@ -14,6 +16,8 @@ HOSTVOL_MOUNTDIR = "/mnt/kadalu"
 is_connected = False
 
 cmdList = ["glusterfs", "/mount", "/umount", "findmnt", "losetup"]
+
+socket_lock = threading.Lock()
 
 def connectSocket(client_socket):
     retry_interval = 60
@@ -36,6 +40,12 @@ def connectSocket(client_socket):
 
     return connected
 
+def changeLogLevel(commandList):
+    for i in range(len(commandList)):
+        if "log-level" in commandList[i] and "DEBUG" in commandList[i][-5:]:
+            commandList[i] = commandList[i][:-5] + "INFO" 
+    return commandList
+
 def parseCommand(commandList):
     if "glusterfs" in commandList[0]:
         commandList[0] = GLUSTERFS_CMD
@@ -44,6 +54,7 @@ def parseCommand(commandList):
     elif "/umount" in commandList[0]:
         commandList[0] = UNMOUNT_CMD
 
+    commandList = changeLogLevel(commandList)
     return " ".join(commandList)
 
 def socketClient(commandList):
@@ -94,7 +105,12 @@ def executeCommand(*cmd):
     head = cmd[0]
     logging.info(cmd)
     if any(cmdStr in head for cmdStr in cmdList):
-        logging.info("The command is glusterfs or mount or umount or findmnt")
-        return socketClient(list(cmd))
+        with socket_lock:
+            logging.info("creating obj, the command is glusterfs or mount or umount or findmnt")
+            return socketClient(list(cmd))
+        
+        
+            # obj = SocketConnect()
+            # return obj.socketClient(list(cmd))
     else:
         return execute(*cmd)
