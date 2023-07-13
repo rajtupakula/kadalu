@@ -11,7 +11,6 @@ GLUSTERFS_CMD = "/usr/sbin/glusterfs"
 MOUNT_CMD = "/usr/bin/mount"
 UNMOUNT_CMD = "/usr/bin/umount"
 HOSTVOL_MOUNTDIR = "/mnt/kadalu"
-is_connected = False
 
 cmdList = ["glusterfs", "/mount", "/umount", "findmnt", "losetup"]
 
@@ -39,7 +38,7 @@ def connectSocket(client_socket):
 def changeLogLevel(commandList):
     for i in range(len(commandList)):
         if "log-level" in commandList[i] and "DEBUG" in commandList[i][-5:]:
-            commandList[i] = commandList[i][:-5] + "INFO" 
+            commandList[i] = commandList[i][:-5] + "INFO"
     return commandList
 
 
@@ -56,7 +55,6 @@ def parseCommand(commandList):
 
 def socketClient(commandList):
     cmd = parseCommand(commandList)
-    global is_connected
     client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
     json_data = json.dumps({
@@ -65,9 +63,8 @@ def socketClient(commandList):
         "output" : ""
     })
 
-    if not is_connected :
-        logging.debug("socket not connected " + str(is_connected))
-        is_connected = connectSocket(client_socket)
+    logging.debug("Connecting socket")
+    is_connected = connectSocket(client_socket)
 
     if not is_connected:
         logging.error("Unable to connect to the server after max retries.")
@@ -75,7 +72,7 @@ def socketClient(commandList):
     else:
         try:
             logging.info("Seding the command to socket server for execution")
-            
+
             data = {
                 "id" : str(uuid.uuid4()),
                 "commandtype" : 4,
@@ -93,7 +90,6 @@ def socketClient(commandList):
         finally:
             # Close the connection
             client_socket.close()
-            is_connected = False
     if len(json_data['error']) != 0 :
                 raise CommandException(json_data['result'], json_data['output'], json_data['error'])
     return (json_data["output"], json_data["error"], json_data['result'])
