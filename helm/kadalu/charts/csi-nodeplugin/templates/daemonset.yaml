@@ -47,7 +47,7 @@ spec:
             capabilities:
               add: ["SYS_ADMIN"]
             allowPrivilegeEscalation: true
-          image: dockerhub.cisco.com/robot-dockerprod/kadalu-csi-driver:kadalu-pods-restart-28-230711045031
+          image: dockerhub.cisco.com/robot-dockerprod/kadalu-csi-driver:3.0.0
           env:
             - name: NODE_ID
               valueFrom:
