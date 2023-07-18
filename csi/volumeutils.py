@@ -1095,8 +1095,6 @@ def mount_glusterfs_with_host(volname, mountpoint, hosts, options=None, is_clien
                  ))
 
     for host in hosts.split(','):
-        if netaddr.valid_ipv6(host):
-            host += ":24007"
         cmd.extend(["--volfile-server", host])
         logging.info(logf(
         "gluster-kadalu hostname",
