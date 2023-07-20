@@ -5,13 +5,10 @@ ENV PATH="/kadalu/bin:/opt/bin:/opt/sbin:$PATH"
 
 COPY requirements/csi-requirements.txt /tmp/
 
-ENV http_proxy http://proxy.esl.cisco.com:80
-ENV https_proxy http://proxy.esl.cisco.com:80
-ENV ftp_proxy http://proxy.esl.cisco.com:80
+ENV http_proxy http://2.proxy.esl.cisco.com:80
+ENV ftp_proxy http://2.proxy.esl.cisco.com:80
+ENV https_proxy http://2.proxy.esl.cisco.com:80
 ENV no_proxy 127.0.0.1,localhost,.cisco.com
-ENV FTP_PROXY http://proxy.esl.cisco.com:80
-ENV HTTP_PROXY http://proxy.esl.cisco.com:80
-ENV HTTPS_PROXY http://proxy.esl.cisco.com:80
 
 RUN python3 -m pip install $(grep -vE '^(grpcio|\s*#)' /tmp/csi-requirements.txt) --no-cache-dir && \
     python3 -m pip download --only-binary :all: --dest /tmp/ --no-cache $(grep -oE '^grpcio==.*$' /tmp/csi-requirements.txt) && \
@@ -21,14 +18,10 @@ RUN python3 -m pip install $(grep -vE '^(grpcio|\s*#)' /tmp/csi-requirements.txt
 
 FROM python:3.10-slim-bullseye as prod
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV http_proxy http://proxy.esl.cisco.com:80
-ENV https_proxy http://proxy.esl.cisco.com:80
-ENV ftp_proxy http://proxy.esl.cisco.com:80
+ENV http_proxy http://2.proxy.esl.cisco.com:80
+ENV ftp_proxy http://2.proxy.esl.cisco.com:80
+ENV https_proxy http://2.proxy.esl.cisco.com:80
 ENV no_proxy 127.0.0.1,localhost,.cisco.com
-ENV FTP_PROXY http://proxy.esl.cisco.com:80
-ENV HTTP_PROXY http://proxy.esl.cisco.com:80
-ENV HTTPS_PROXY http://proxy.esl.cisco.com:80
 
 RUN apt-get update -yq && \
     apt-get install -y --no-install-recommends sqlite3 psmisc logrotate xfsprogs attr libtirpc3 bash inotify-tools ssh liburcu6 libgoogle-perftools4 && \
@@ -94,10 +87,6 @@ ENTRYPOINT ["python3", "/kadalu/start.py"]
 # ENTRYPOINT ["tail", "-f", "/dev/null"]
 
 ENV http_proxy=""
-ENV HTTP_PROXY=""
-ENV ftp_proxy=""
-ENV FTP_PROXY=""
-ENV https_proxy=""
-ENV HTTPS_PROXY=""
-ENV no_proxy=""
-ENV NO_PROXY=""
+ENV ftp_proxy="" 
+ENV https_proxy="" 
+ENV no_proxy="" 
