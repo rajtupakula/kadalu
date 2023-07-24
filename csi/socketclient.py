@@ -18,10 +18,9 @@ SOCKET_FILE_PATH = "/var/run/vmexec-socket/vmexec.sock"
 GLUSTERFS_CMD = "/usr/sbin/glusterfs"
 MOUNT_CMD = "/usr/bin/mount"
 UNMOUNT_CMD = "/usr/bin/umount"
-HOSTVOL_MOUNTDIR = "/mnt/kadalu"
 
 # List of commands intercepted and sent to the command execution conduit
-cmdList = ["glusterfs", "/mount", "/umount", "losetup"]
+cmdList = ["glusterfs", "/mount", "/umount", "/fusermount", "losetup"]
 
 is_debug = os.environ.get("DEBUG", "False")
 
@@ -55,7 +54,7 @@ def change_log_level(commandList):
     return commandList
 
 
-def parse_command(commandList):
+def substitute_cmd(commandList):
     if "glusterfs" in commandList[0]:
         commandList[0] = GLUSTERFS_CMD
     elif "/mount" in commandList[0]:
@@ -69,7 +68,7 @@ def parse_command(commandList):
 
 
 def socket_client(commandList):
-    cmd = parse_command(commandList)
+    cmd = substitute_cmd(commandList)
 
     json_data = {
         "error": "Unable to execute command",

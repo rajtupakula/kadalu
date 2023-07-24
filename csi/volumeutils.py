@@ -29,7 +29,7 @@ if vmexecMnt == "True":
 
 GLUSTERFS_CMD = "/opt/sbin/glusterfs"
 MOUNT_CMD = "/bin/mount"
-UNMOUNT_CMD = "/bin/fuserumount"
+UNMOUNT_CMD = "/bin/umount"
 MKFS_XFS_CMD = "/sbin/mkfs.xfs"
 XFS_GROWFS_CMD = "/sbin/xfs_growfs"
 RESERVED_SIZE_PERCENTAGE = 10
@@ -897,7 +897,7 @@ def unmount_glusterfs(mountpoint):
     """Unmount GlusterFS mount"""
     volname = os.path.basename(mountpoint)
     if is_gluster_mount_proc_running(volname, mountpoint):
-        execute(UNMOUNT_CMD, "-u", mountpoint)
+        execute("/usr/bin/fusermount", "-u", mountpoint)
 
 
 def unmount_volume(mountpoint):
@@ -913,7 +913,7 @@ def unmount_volume(mountpoint):
             execute(*cmd)
 
     if os.path.ismount(mountpoint):
-        execute(UNMOUNT_CMD, "-u", mountpoint)
+        execute(UNMOUNT_CMD, mountpoint)
 
 
 def expand_mounted_volume(mountpoint):
@@ -1013,15 +1013,17 @@ def handle_external_volume(volume, mountpoint, is_client, hosts):
 
     volname = volume['g_volname']
 
+    logging.info(logf("handle external volume"))
+
     # Try to mount the Host Volume, handle failure if
     # already mounted
     if not is_gluster_mount_proc_running(volname, mountpoint):
         with mount_lock:
             mount_glusterfs_with_host(volname,
-                                    mountpoint,
-                                    hosts,
-                                    volume['g_options'],
-                                    is_client)
+                                      mountpoint,
+                                      hosts,
+                                      volume['g_options'],
+                                      is_client)
     else:
         logging.debug(logf(
             "Already mounted",
