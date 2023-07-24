@@ -29,7 +29,7 @@ if vmexecMnt == "True":
 
 GLUSTERFS_CMD = "/opt/sbin/glusterfs"
 MOUNT_CMD = "/bin/mount"
-UNMOUNT_CMD = "/bin/umount"
+UNMOUNT_CMD = "/bin/fuserumount"
 MKFS_XFS_CMD = "/sbin/mkfs.xfs"
 XFS_GROWFS_CMD = "/sbin/xfs_growfs"
 RESERVED_SIZE_PERCENTAGE = 10
@@ -897,7 +897,7 @@ def unmount_glusterfs(mountpoint):
     """Unmount GlusterFS mount"""
     volname = os.path.basename(mountpoint)
     if is_gluster_mount_proc_running(volname, mountpoint):
-        execute(UNMOUNT_CMD, "-l", mountpoint)
+        execute(UNMOUNT_CMD, "-u", mountpoint)
 
 
 def unmount_volume(mountpoint):
@@ -913,7 +913,7 @@ def unmount_volume(mountpoint):
             execute(*cmd)
 
     if os.path.ismount(mountpoint):
-        execute(UNMOUNT_CMD, "-l", mountpoint)
+        execute(UNMOUNT_CMD, "-u", mountpoint)
 
 
 def expand_mounted_volume(mountpoint):
@@ -975,6 +975,7 @@ def mount_glusterfs(volume, mountpoint, is_client=False):
         cmd = [
             GLUSTERFS_CMD,
             "--process-name", "fuse",
+            "--fuse-mountopts=auto_unmount",
             "-l", log_file,
             "--volfile-id", volname,
             "--fs-display-name", "kadalu:%s" % volname,
@@ -1081,6 +1082,7 @@ def mount_glusterfs_with_host(volname, mountpoint, hosts, options=None, is_clien
     cmd = [
         GLUSTERFS_CMD,
         "--process-name", "fuse",
+        "--fuse-mountopts=auto_unmount",
         "-l", "%s" % log_file,
         "--volfile-id", volname,
     ]
@@ -1090,9 +1092,9 @@ def mount_glusterfs_with_host(volname, mountpoint, hosts, options=None, is_clien
     if netaddr.valid_ipv6(hosts.split(',')[0]):
         cmd.extend(["--xlator-option","transport.address-family=inet6"])
         logging.info(logf(
-                "proceeding with xlator",
-                 cmd=cmd,
-                 ))
+            "proceeding with v6 xlator",
+            cmd=cmd,
+        ))
 
     for host in hosts.split(','):
         cmd.extend(["--volfile-server", host])
