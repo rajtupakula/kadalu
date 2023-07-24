@@ -20,7 +20,7 @@ MOUNT_CMD = "/usr/bin/mount"
 UNMOUNT_CMD = "/usr/bin/umount"
 
 # List of commands intercepted and sent to the command execution conduit
-cmdList = ["glusterfs", "/mount", "/umount", "/fusermount", "losetup"]
+cmdList = ["glusterfs", "/mount", "/umount", "/fusermount", "losetup", "/bin/sh"]
 
 is_debug = os.environ.get("DEBUG", "False")
 
@@ -55,7 +55,7 @@ def change_log_level(commandList):
 
 
 def substitute_cmd(commandList):
-    if "glusterfs" in commandList[0]:
+    if "/bin/glusterfs" in commandList[0]:
         commandList[0] = GLUSTERFS_CMD
     elif "/mount" in commandList[0]:
         commandList[0] = MOUNT_CMD
@@ -102,7 +102,7 @@ def socket_client(commandList):
             json_data = json.loads(response)
     if len(json_data['error']) != 0:
         raise CommandException(-1, cmd, json_data['error'])
-    return json_data["output"], json_data["error"], json_data['result']
+    return json_data["output"], json_data["error"], int(json_data['result'])
 
 
 def execute_vmexec(*cmd):
@@ -113,3 +113,11 @@ def execute_vmexec(*cmd):
     else:
         logging.debug("Executing command using default executioner")
         return execute(*cmd)
+
+
+def is_gl_mount_vmexec(volname, mountpoint):
+    args = '''ps ax | grep bin/glusterfs | grep {} | grep -w {}'''.format(volname, mountpoint)
+
+    out, err, res = execute_vmexec("/bin/sh -c", args)
+    logging.info("is_gl_mount_vmexec returned. out %s err %s res %s", out, err, res)
+    return res == 0
