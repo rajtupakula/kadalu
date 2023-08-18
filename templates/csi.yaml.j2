@@ -105,7 +105,7 @@ spec:
             capabilities:
               add: ["CAP_SYS_ADMIN", "SYS_ADMIN"]
             allowPrivilegeEscalation: true
-          image: dockerhub.cisco.com/robot-dockerprod/kadalu-csi-driver:###tag###
+          image: dockerhub.cisco.com/robot-dockerprod/kadalu-csi:###tag###
           env:
             - name: NODE_ID
               valueFrom:
@@ -144,7 +144,8 @@ spec:
             - name: glusterfs-vol
               mountPath: /var/run/vmexec-socket/
         - name: kadalu-logging
-          image: {{ images_hub }}/library/busybox
+          image: docker.io/library/busybox:latest
+          imagePullPolicy: IfNotPresent
           command: ["/bin/sh"]
           args: ["-c", "while true; do logcnt=$(/bin/ls /var/log/gluster/ | wc -l); if [ ${logcnt} -gt 0 ]; then break; fi; sleep 5; done; tail -F /var/log/gluster/*.log"]
           volumeMounts:
