@@ -11,15 +11,18 @@ RUN python3 -m pip install $(grep -vE '^(grpcio|\s*#)' /tmp/csi-requirements.txt
     python3 -m pip install netaddr && \
     grep -Po '^[\w\.-]*(?=)' /tmp/csi-requirements.txt | xargs -I pkg python3 -m pip show pkg | grep -P '^(Name|Version|Location)'
 
-FROM dockerhub.cisco.com/robot-dockerprod/python:3.10-slim-bullseye as prod
+#FROM dockerhub.cisco.com/robot-dockerprod/python:3.10-slim-bullseye as prod
+FROM dockerhub.cisco.com/docker.io/alpine:3.17.2 as prod
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -yq && \
-    apt-get install -y --no-install-recommends sqlite3 psmisc logrotate xfsprogs attr libtirpc3 bash inotify-tools ssh liburcu6 libgoogle-perftools4 && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/*
+#RUN apt-get update -yq && \
+#    apt-get install -y --no-install-recommends sqlite3 psmisc logrotate xfsprogs attr libtirpc3 bash inotify-tools ssh liburcu6 libgoogle-perftools4 && \
+#    apt-get -y clean && \
+#    rm -rf /var/lib/apt/lists/*
 
+RUN apk update \
+    && apk --no-cache add python3 py3-pip sqlite3 psmisc logrotate xfsprogs attr libtirpc3 inotify-tools liburcu6
 ENV PATH="/kadalu/bin:/opt/bin:/opt/sbin:$PATH"
 
 # copy glusterfs installed in /opt

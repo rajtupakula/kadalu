@@ -9,15 +9,19 @@ RUN python3 -m pip install -r /tmp/operator-requirements.txt --no-cache-dir && \
     python3 -m pip install netaddr && \
     grep -Po '^[\w\.-]*(?=)' /tmp/operator-requirements.txt | xargs -I pkg python3 -m pip show pkg | grep -P '^(Name|Version|Location)'
 
-FROM dockerhub.cisco.com/robot-dockerprod/python:3.10-slim-bullseye as prod
-
+#FROM dockerhub.cisco.com/robot-dockerprod/python:3.10-slim-bullseye as prod
+FROM dockerhub.cisco.com/docker.io/alpine:3.17.2 as prod
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -yq && \
-    apt-get install -y --no-install-recommends procps && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/*
+#RUN apt-get update -yq && \
+#    apt-get install -y --no-install-recommends procps && \
+#    apt-get -y clean && \
+#    rm -rf /var/lib/apt/lists/*
+
+RUN apk update \
+    && apk --no-cache add python3 py3-pip procps \
+
 
 ENV PATH="/kadalu/bin:$PATH"
 
