@@ -263,13 +263,15 @@ def create_block_volume(pvtype, hostvol_mnt, volname, size):
     volhash = get_volname_hash(volname)
     volpath = get_volume_path(pvtype, volhash, volname)
     volpath_full = os.path.join(hostvol_mnt, volpath)
-    logging.debug(logf(
-        "Volume hash",
-        volhash=volhash
-    ))
+
+    # Ensure there is enough space before creating the volume
+    if not is_hosting_volume_free(os.path.basename(hostvol_mnt), size):
+        logging.error("Insufficient space available to create the volume.")
+        return None
 
     # Check for mount availability before creating virtblock volume
     retry_errors(os.statvfs, [hostvol_mnt], [ENOTCONN])
+
 
     # Create a file with required size
     makedirs(os.path.dirname(volpath_full))
