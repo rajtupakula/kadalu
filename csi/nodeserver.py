@@ -27,33 +27,22 @@ class NodeServer(csi_pb2_grpc.NodeServicer):
     """
     def NodePublishVolume(self, request, context):
         start_time = time.time()
-        if not request.volume_id:
-            errmsg = "Volume ID is empty and must be provided"
-            logging.error(errmsg)
-            context.set_details(errmsg)
-            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            return csi_pb2.NodePublishVolumeResponse()
+        required_fields = {
+            'volume_id': request.volume_id,
+            'target_path': request.target_path,
+            'volume_capability': request.volume_capability,
+            'volume_context': request.volume_context
+        }
 
-        if not request.target_path:
-            errmsg = "Target path is empty and must be provided"
-            logging.error(errmsg)
-            context.set_details(errmsg)
-            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            return csi_pb2.NodePublishVolumeResponse()
+        # Check for empty required fields and return an error if any are missing
+        for field, value in required_fields.items():
+            if not value:
+                errmsg = f"{field} is empty and must be provided"
+                logging.error(errmsg)
+                context.set_details(errmsg)
+                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                return csi_pb2.NodePublishVolumeResponse()
 
-        if not request.volume_capability:
-            errmsg = "Volume capability is empty and must be provided"
-            logging.error(errmsg)
-            context.set_details(errmsg)
-            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            return csi_pb2.NodePublishVolumeResponse()
-
-        if not request.volume_context:
-            errmsg = "Volume context is empty and must be provided"
-            logging.error(errmsg)
-            context.set_details(errmsg)
-            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            return csi_pb2.NodePublishVolumeResponse()
 
         hostvol = request.volume_context.get("hostvol", "")
         pvpath = request.volume_context.get("path", "")
