@@ -103,22 +103,21 @@ class NodeServer(csi_pb2_grpc.NodeServicer):
                 duration_seconds=time.time() - start_time
             ))
         else:
-            errmsg = "Unable to bind PV to target path"
-            logging.error(errmsg)
-            context.set_details(errmsg)
-            context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
+        try:
+            # Volume mounting logic...
+            if mount_volume(pvpath_full, request.target_path, pvtype, fstype=None):
+                logging.info("Mounted PV successfully")
+                # Additional logic...
+            else:
+                raise Exception("Unable to bind PV to target path")
+        except Exception as e:
+            logging.error(f"Error during volume mount: {str(e)}")
+            context.set_details(f"Error during volume mount: {str(e)}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+            return csi_pb2.NodePublishVolumeResponse()
+
+        # Success path...
         return csi_pb2.NodePublishVolumeResponse()
-
-
-    def NodeUnpublishVolume(self, request, context):
-        # TODO: Validation and handle target_path failures
-
-        if not request.volume_id:
-            errmsg = "Volume ID is empty and must be provided"
-            logging.error(errmsg)
-            context.set_details(errmsg)
-            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            return csi_pb2.NodeUnpublishVolumeResponse()
 
         if not request.target_path:
             errmsg = "Target path is empty and must be provided"
