@@ -432,33 +432,20 @@ def create_subdir_volume(hostvol_mnt, volname, size, use_gluster_quota):
     return Volume(
         volname=volname,
         voltype=PV_TYPE_SUBVOL,
-        volhash=volhash,
-        hostvol=os.path.basename(hostvol_mnt),
-        size=size,
-        volpath=volpath,
-    )
-
-
 def is_hosting_volume_free(hostvol, requested_pvsize):
-    """Check if host volume is free to expand or create (external)volume"""
-
+    """
+    Check if the hosting volume has enough space for the new volume
+    """
     mntdir = os.path.join(HOSTVOL_MOUNTDIR, hostvol)
-    with statfile_lock:
-
-        # Stat done before `os.path.exists` to prevent ignoring
-        # file not exists even in case of ENOTCONN
+    with statfile_lock:  # Ensure exclusive access to the hosting volume's space information
         mntdir_stat = retry_errors(os.statvfs, [mntdir], [ENOTCONN])
-        with SizeAccounting(hostvol, mntdir) as acc:
-            acc.update_summary(mntdir_stat.f_blocks * mntdir_stat.f_bsize)
-            pv_stats = acc.get_stats()
-            reserved_size = pv_stats["free_size_bytes"] * RESERVED_SIZE_PERCENTAGE/100
+        free_size_bytes = mntdir_stat.f_bfree * mntdir_stat.f_bsize
 
-        logging.debug(logf(
-            "pv stats",
-            hostvol=hostvol,
-            total_size_bytes=pv_stats["total_size_bytes"],
-            used_size_bytes=pv_stats["used_size_bytes"],
-            free_size_bytes=pv_stats["free_size_bytes"],
+        if requested_pvsize <= free_size_bytes:
+            return True
+        else:
+            return False
+
             number_of_pvs=pv_stats["number_of_pvs"],
             required_size=requested_pvsize,
             reserved_size=reserved_size
