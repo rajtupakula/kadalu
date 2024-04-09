@@ -259,10 +259,14 @@ def mount_and_select_hosting_volume(pv_hosting_volumes, required_size):
 
 
 def create_block_volume(pvtype, hostvol_mnt, volname, size):
-    """Create virtual block volume"""
     volhash = get_volname_hash(volname)
     volpath = get_volume_path(pvtype, volhash, volname)
     volpath_full = os.path.join(hostvol_mnt, volpath)
+
+    # Check if the volume already exists to ensure idempotency
+    if os.path.exists(volpath_full):
+        logging.info(f"Volume {volname} already exists. Skipping creation.")
+        return Volume(volname=volname, voltype=pvtype, hostvol=os.path.basename(hostvol_mnt), size=size, volpath=volpath)
 
     # Ensure there is enough space before creating the volume
     if not is_hosting_volume_free(os.path.basename(hostvol_mnt), size):
@@ -271,6 +275,7 @@ def create_block_volume(pvtype, hostvol_mnt, volname, size):
 
     # Check for mount availability before creating virtblock volume
     retry_errors(os.statvfs, [hostvol_mnt], [ENOTCONN])
+
 
 
     # Create a file with required size
