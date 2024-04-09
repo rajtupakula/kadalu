@@ -259,17 +259,24 @@ def mount_and_select_hosting_volume(pv_hosting_volumes, required_size):
 
 
 def create_block_volume(pvtype, hostvol_mnt, volname, size):
-    """Create virtual block volume"""
     volhash = get_volname_hash(volname)
     volpath = get_volume_path(pvtype, volhash, volname)
     volpath_full = os.path.join(hostvol_mnt, volpath)
-    logging.debug(logf(
-        "Volume hash",
-        volhash=volhash
-    ))
+
+    # Check if the volume already exists to ensure idempotency
+    if os.path.exists(volpath_full):
+        logging.info(f"Volume {volname} already exists. Skipping creation.")
+        return Volume(volname=volname, voltype=pvtype, hostvol=os.path.basename(hostvol_mnt), size=size, volpath=volpath)
+
+    # Ensure there is enough space before creating the volume
+    if not is_hosting_volume_free(os.path.basename(hostvol_mnt), size):
+        logging.error("Insufficient space available to create the volume.")
+        return None
 
     # Check for mount availability before creating virtblock volume
     retry_errors(os.statvfs, [hostvol_mnt], [ENOTCONN])
+
+
 
     # Create a file with required size
     makedirs(os.path.dirname(volpath_full))
@@ -425,33 +432,20 @@ def create_subdir_volume(hostvol_mnt, volname, size, use_gluster_quota):
     return Volume(
         volname=volname,
         voltype=PV_TYPE_SUBVOL,
-        volhash=volhash,
-        hostvol=os.path.basename(hostvol_mnt),
-        size=size,
-        volpath=volpath,
-    )
-
-
 def is_hosting_volume_free(hostvol, requested_pvsize):
-    """Check if host volume is free to expand or create (external)volume"""
-
+    """
+    Check if the hosting volume has enough space for the new volume
+    """
     mntdir = os.path.join(HOSTVOL_MOUNTDIR, hostvol)
-    with statfile_lock:
-
-        # Stat done before `os.path.exists` to prevent ignoring
-        # file not exists even in case of ENOTCONN
+    with statfile_lock:  # Ensure exclusive access to the hosting volume's space information
         mntdir_stat = retry_errors(os.statvfs, [mntdir], [ENOTCONN])
-        with SizeAccounting(hostvol, mntdir) as acc:
-            acc.update_summary(mntdir_stat.f_blocks * mntdir_stat.f_bsize)
-            pv_stats = acc.get_stats()
-            reserved_size = pv_stats["free_size_bytes"] * RESERVED_SIZE_PERCENTAGE/100
+        free_size_bytes = mntdir_stat.f_bfree * mntdir_stat.f_bsize
 
-        logging.debug(logf(
-            "pv stats",
-            hostvol=hostvol,
-            total_size_bytes=pv_stats["total_size_bytes"],
-            used_size_bytes=pv_stats["used_size_bytes"],
-            free_size_bytes=pv_stats["free_size_bytes"],
+        if requested_pvsize <= free_size_bytes:
+            return True
+        else:
+            return False
+
             number_of_pvs=pv_stats["number_of_pvs"],
             required_size=requested_pvsize,
             reserved_size=reserved_size
